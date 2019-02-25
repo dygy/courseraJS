@@ -4,6 +4,7 @@ module.exports = (str) =>{
 
   //  arr.splice(arr.length-1);
     for (let x = 0;x<str.length;x++){
+
         for (let y=0;y<arr.length;y++){
 
             if (str[x].toLowerCase() === arr[y].toLowerCase()){
@@ -14,9 +15,8 @@ module.exports = (str) =>{
             arr.push(str[x].toLowerCase());
 
         }
+        toPush=true
 
     }
-
-    console.log(arr);
-    return arr;
+    return arr.join(', ');
 };
