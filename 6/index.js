@@ -1,54 +1,54 @@
-module.exports =(command)=> {
-    let contact= {name:''};
-    let arr = [];
-    let contacts=[];
-    const regex = /((?:[A-Z]|_)+)(?: )?([A-Za-z]+)?(?::)?(?: )?((?:\d|-)+)?(,(?:\d+|-)+)*/gm;
-    let msg = {
-        name: '',
-        person: '',
-        phone: '',
-        anotherPhone: ''
-    };
-    let m;
-
-    while ((m = regex.exec(command)) !== null) {
-        // This is necessary to avoid infinite loops with zero-width matches
-        if (m.index === regex.lastIndex) {
-            regex.lastIndex++;
-        }
-        if (m[1]==='ADD'){
-            contact.phone = [];
-            contact.name=m[2];
-            contact.phone.push(m[3]);
-            msg.name= m[1];
-            msg.person= m[2];
-            msg.phone = m[3];
-            if (m[4]!==undefined) {
-                msg.anotherPhone = m[4];
-                contact.phone.push(m[4].slice(1))
+let phoneBook = {};
+let commandWordsArray;
+let commandName;
+module.exports = (command)=> {
+    commandWordsArray = command.split(' ');
+    commandName = commandWordsArray[0];
+    if (commandName === 'ADD') return addContact(command);
+    if (commandName === 'REMOVE_PHONE') return removePhone(command);
+    if (commandName === 'SHOW') return show();
+};
+function addContact() {
+    let newName = commandWordsArray[1];
+    let phoneNumbersArrayToAdd = commandWordsArray[2].split(',');
+    if (phoneBook.hasOwnProperty(newName)) {
+        let initialPhonesArray = phoneBook[newName].split(', ');
+        let updatedPhoneList = initialPhonesArray.concat(phoneNumbersArrayToAdd);
+        phoneBook[newName] = updatedPhoneList.join(', ');
+        return;
+    }
+    phoneBook[newName] = phoneNumbersArrayToAdd.join(', ');
+}
+function removePhone() {
+    let phoneToRemove = commandWordsArray[1];
+    let clone = {};
+    for (let key in phoneBook) {
+        clone[key] = phoneBook[key];
+    }
+    for (let name in phoneBook) {
+        if (phoneBook[name] === phoneToRemove) {
+            delete phoneBook[name];
+        } else if (phoneBook[name].split(', ').indexOf(phoneToRemove) !== -1) {
+            let initialPhonesArray = phoneBook[name].split(', ');
+            for (let i = 0; i < initialPhonesArray.length; i++) {
+                if (initialPhonesArray[i] === phoneToRemove) {
+                    initialPhonesArray.splice(i, 1);
+                }
             }
-            arr.push(msg);
+            phoneBook[name] = initialPhonesArray.join(', ');
         }
-        if (m[1]==='REMOVE_PHONE'){
-            msg.name= m[1];
-            msg.phone = m[3];
-            arr.push(msg);
-            deleteUser(m[3])
-        }
-        if (m[1]==='SHOW'){
-            msg.name= m[1];
-            arr.push(msg);
-        }
-        // The result can be accessed through the `m`-variable.
     }
 
-    deleteUser = (phone) =>{
-        for (let x=0;x<contact.phone.length;x++){
-         if (contact.phone[x] === phone){
-             contact.name = ''
-         }
-        }
-    };
+    return JSON.stringify(clone) !== JSON.stringify(phoneBook);
+}
 
-console.log(contact)
-};
+function show() {
+    let arr = [];
+    let i = 0;
+    for (let key in phoneBook) {
+        arr[i] = key + ': ' + phoneBook[key];
+        i++;
+    }
+
+    return arr.sort();
+}
